@@ -489,7 +489,6 @@ do
 		self.Addons = self.Addons or { }; table.insert(self.Addons, ColorPicker);
 		if (self.ToggleRegion) then
 			self.ColorPickerCount = (self.ColorPickerCount or 0) + 1;
-			-- Adjust toggle region size if needed (already handled by dynamic label)
 		end
 		return self;
 	end;
@@ -641,9 +640,6 @@ do
 		KeyPicker:SetupConnection(InputService.InputEnded:Connect(function(Input) if (not Picking) then KeyPicker:Update(); end; end))
 		KeyPicker:Update();
 		Options[Idx] = KeyPicker;
-		if ParentObj.ToggleRegion then
-			-- Adjust parent toggle label size if needed (dynamic)
-		end
 		return self;
 	end;
 
@@ -808,14 +804,14 @@ do
 		local Toggle = { Value = Info.Default or false; Type = 'Toggle'; Callback = Info.Callback or function(Value) end; Addons = {}, Risky = Info.Risky, Idx = Idx; };
 		local Groupbox = self; local Container = Groupbox.Container;
 		
-		-- Checkbox frame (non‑interactive – click handled by parent)
+		-- Checkbox frame (non‑interactive – click handled by ToggleInner)
 		local ToggleOuter = Library:Create('Frame', { 
 			BackgroundColor3 = Color3.new(0, 0, 0); 
 			BorderColor3 = Color3.new(0, 0, 0); 
 			Size = UDim2.new(0, 13, 0, 13); 
 			ZIndex = 5; 
 			Parent = Container; 
-			Active = false; -- make non‑interactive so clicks pass through to Container
+			Active = false; -- make non‑interactive so clicks pass through to ToggleInner
 		});
 		Library:AddToRegistry(ToggleOuter, { BorderColor3 = 'Black'; });
 		
@@ -826,11 +822,11 @@ do
 			Size = UDim2.new(1, 0, 1, 0); 
 			ZIndex = 6; 
 			Parent = ToggleOuter; 
-			Active = true; -- make clickable so whole area triggers toggle
+			Active = true; -- make clickable so checkbox area toggles
 		});
 		Library:AddToRegistry(ToggleInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; });
 		
-		-- Connect click on the entire toggle (checkbox area)
+		-- Connect click on the checkbox
 		ToggleInner.InputBegan:Connect(function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
 				Toggle:SetValue(not Toggle.Value);
@@ -845,8 +841,16 @@ do
 			Text = Info.Text; 
 			TextXAlignment = Enum.TextXAlignment.Left; 
 			ZIndex = 6; 
-			Parent = ToggleInner; 
+			Parent = ToggleInner; -- parent is ToggleInner so clicks on label also go to ToggleInner? No, because label is outside ToggleInner's geometry? Actually, ToggleInner is only 13x13, so label is outside its bounds but still a child. So clicks on label won't trigger ToggleInner's InputBegan. We need to make label clickable separately.
 		});
+		
+		-- Make the text label clickable
+		ToggleLabel.InputBegan:Connect(function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
+				Toggle:SetValue(not Toggle.Value);
+				Library:AttemptSave();
+			end;
+		end);
 		
 		local AddonLayout = Library:Create('UIListLayout', { 
 			Padding = UDim.new(0, 4); 
