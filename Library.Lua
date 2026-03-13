@@ -1,4 +1,4 @@
-print("Updated 0.0.2")
+print("updated 0.0.3")
 
 local InputService = game:GetService('UserInputService');
 local TextService = game:GetService('TextService');
@@ -401,7 +401,7 @@ do
 		});
 		DisplayFrame.InputBegan:Connect(function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Input:Handled() -- prevent propagation to toggle
+				Input.Handled = true -- prevent propagation to toggle
 			end
 		end);
 		local CheckerFrame = Library:Create('ImageLabel', { BorderSizePixel = 0; Size = UDim2.new(0, 27, 0, 13); ZIndex = 5; Image = 'http://www.roblox.com/asset/?id=12977615774'; Visible = not not Info.Transparency; Parent = DisplayFrame; });
@@ -495,7 +495,7 @@ do
 
 		SatVibMap.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 then while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do local MinX = SatVibMap.AbsolutePosition.X; local MaxX = MinX + SatVibMap.AbsoluteSize.X; local MouseX = math.clamp(Mouse.X, MinX, MaxX); local MinY = SatVibMap.AbsolutePosition.Y; local MaxY = MinY + SatVibMap.AbsoluteSize.Y; local MouseY = math.clamp(Mouse.Y, MinY, MaxY); ColorPicker.Sat = (MouseX - MinX) / (MaxX - MinX); ColorPicker.Vib = 1 - ((MouseY - MinY) / (MaxY - MinY)); ColorPicker:Display(); RenderStepped:Wait(); end; Library:AttemptSave(); end; end);
 		HueSelectorInner.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 then while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do local MinY = HueSelectorInner.AbsolutePosition.Y; local MaxY = MinY + HueSelectorInner.AbsoluteSize.Y; local MouseY = math.clamp(Mouse.Y, MinY, MaxY); ColorPicker.Hue = ((MouseY - MinY) / (MaxY - MinY)); ColorPicker:Display(); RenderStepped:Wait(); end; Library:AttemptSave(); end; end);
-		DisplayFrame.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then if PickerFrameOuter.Visible then ColorPicker:Hide() else ColorPicker:Show() end; Input:Handled(); end; end);
+		DisplayFrame.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then if PickerFrameOuter.Visible then ColorPicker:Hide() else ColorPicker:Show() end; Input.Handled = true; end; end);
 		if TransparencyBoxInner then TransparencyBoxInner.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 then while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do local MinX = TransparencyBoxInner.AbsolutePosition.X; local MaxX = MinX + TransparencyBoxInner.AbsoluteSize.X; local MouseX = math.clamp(Mouse.X, MinX, MaxX); ColorPicker.Transparency = 1 - ((MouseX - MinX) / (MaxX - MinX)); ColorPicker:Display(); RenderStepped:Wait(); end; Library:AttemptSave(); end; end); end;
 
 		local handle = function() if (not _visible) then return; end; local AbsPos, AbsSize = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize; if (Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y) then ColorPicker:Hide(); end; end
@@ -544,7 +544,7 @@ do
 		});
 		PickOuter.InputBegan:Connect(function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Input:Handled() -- prevent propagation
+				Input.Handled = true -- prevent propagation
 			end
 		end);
 		local PickInner = Library:Create('Frame', { BackgroundColor3 = Library.BackgroundColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1, 0, 1, 0); ZIndex = 7; Parent = PickOuter; });
@@ -650,7 +650,7 @@ do
 					Library:SafeCallback(KeyPicker.Changed, Input.KeyCode or Input.UserInputType)
 					Library:AttemptSave(); Event:Disconnect();
 				end);
-				Input:Handled();
+				Input.Handled = true;
 			end;
 		end);
 
@@ -863,7 +863,7 @@ do
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
 				Toggle:SetValue(not Toggle.Value);
 				Library:AttemptSave();
-				Input:Handled();
+				Input.Handled = true;
 			end;
 		end);
 		
@@ -884,7 +884,7 @@ do
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
 				Toggle:SetValue(not Toggle.Value);
 				Library:AttemptSave();
-				Input:Handled();
+				Input.Handled = true;
 			end;
 		end);
 		
@@ -1456,12 +1456,19 @@ function Library:CreateWindow(...)
 				Cursor.Size, CursorOutline.Size = UDim2.fromOffset(17, 17), UDim2.fromOffset(19, 19);
 				Cursor.Rotation, CursorOutline.Rotation = -45, -45;
 				while Toggled and ScreenGui.Parent do
-					InputService.MouseIconEnabled = false;
-					local mPos = InputService:GetMouseLocation();
-					local udim = UDim2.fromOffset(mPos.X, mPos.Y - guiservice:GetGuiInset().Y - 1);
-					Cursor.ImageColor3 = Library.AccentColor;
-					Cursor.Position, CursorOutline.Position = udim, udim - UDim2.fromOffset(1, 1);
-					RenderStepped:Wait();
+					-- Respect the ShowCustomCursor setting
+					if Library.ShowCustomCursor then
+						InputService.MouseIconEnabled = false
+						local mPos = InputService:GetMouseLocation()
+						local udim = UDim2.fromOffset(mPos.X, mPos.Y - guiservice:GetGuiInset().Y - 1)
+						Cursor.ImageColor3 = Library.AccentColor
+						Cursor.Position, CursorOutline.Position = udim, udim - UDim2.fromOffset(1, 1)
+					else
+						InputService.MouseIconEnabled = true
+					end
+					Cursor.Visible = Library.ShowCustomCursor
+					CursorOutline.Visible = Library.ShowCustomCursor
+					RenderStepped:Wait()
 				end;
 				InputService.MouseIconEnabled = State;
 				TweenService:Create(Cursor, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), { ImageTransparency = 1 }):Play();
