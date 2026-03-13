@@ -55,6 +55,7 @@ local Library = {
 
 	KeypickerListVisible = true;
 	KeypickerListMode = "All";
+	ShowCustomCursor = true; -- new setting
 
 	Signals = {};
 	ScreenGui = ScreenGui;
@@ -801,7 +802,7 @@ do
 	function Funcs:AddToggle(Idx, Info)
 		assert(Info.Text, 'AddToggle: Missing `Text` string.')
 		local Blanks = { };
-		local Toggle = { Value = Info.Default or false; Type = 'Toggle'; Callback = Info.Callback or function(Value) end; Addons = {}, Risky = Info.Risky, Idx = Idx; };
+		local Toggle = { Value = Info.Default or false; Type = 'Toggle'; Callback = Info.Callback or function(Value) end; Addons = {}, Risky = Info.Risky, Idx = Idx; Color = Info.Color; };
 		local Groupbox = self; local Container = Groupbox.Container;
 		
 		-- Checkbox frame (non‑interactive – click handled by ToggleInner)
@@ -923,7 +924,15 @@ do
 		local contextmenu = Library:AddContextMenu(ToggleOuter, ToggleRegion); 
 		contextmenu:AddOption('Copy Flag', function() pcall(setclipboard, Toggle.Idx); task.wait(); Library:Notify('Copied flag to clipboard!', 2); contextmenu:Hide(); end);
 		
-		if Toggle.Risky then 
+		-- Handle custom text color
+		if Info.Color then
+			-- Remove from registry if previously set by risky
+			local reg = Library.RegistryMap[ToggleLabel]
+			if reg and reg.Properties.TextColor3 then
+				reg.Properties.TextColor3 = nil
+			end
+			ToggleLabel.TextColor3 = Info.Color
+		elseif Toggle.Risky then 
 			Library:RemoveFromRegistry(ToggleLabel); 
 			ToggleLabel.TextColor3 = Library.RiskColor; 
 			Library:AddToRegistry(ToggleLabel, { TextColor3 = 'RiskColor' }) 
