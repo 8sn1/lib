@@ -1,4 +1,4 @@
-print("updated")
+print("Updated 0.0.2")
 
 local InputService = game:GetService('UserInputService');
 local TextService = game:GetService('TextService');
@@ -388,7 +388,22 @@ do
 		function ColorPicker:SetHSVFromRGB(Color) local H, S, V = Color3.toHSV(Color); ColorPicker.Hue = H; ColorPicker.Sat = S; ColorPicker.Vib = V; end;
 		ColorPicker:SetHSVFromRGB(ColorPicker.Value);
 
-		local DisplayFrame = Library:Create('Frame', { BackgroundColor3 = ColorPicker.Value; BorderColor3 = Library:GetDarkerColor(ColorPicker.Value); BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(0, 28, 0, 14); ZIndex = 6; Parent = ToggleLabel; });
+		-- Use TextButton to capture clicks and prevent propagation
+		local DisplayFrame = Library:Create('TextButton', { 
+			BackgroundColor3 = ColorPicker.Value; 
+			BorderColor3 = Library:GetDarkerColor(ColorPicker.Value); 
+			BorderMode = Enum.BorderMode.Inset; 
+			Size = UDim2.new(0, 28, 0, 14); 
+			Text = "";
+			ZIndex = 6; 
+			Parent = ToggleLabel; 
+			Active = true;
+		});
+		DisplayFrame.InputBegan:Connect(function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+				Input:Handled() -- prevent propagation to toggle
+			end
+		end);
 		local CheckerFrame = Library:Create('ImageLabel', { BorderSizePixel = 0; Size = UDim2.new(0, 27, 0, 13); ZIndex = 5; Image = 'http://www.roblox.com/asset/?id=12977615774'; Visible = not not Info.Transparency; Parent = DisplayFrame; });
 
 		local PickerFrameOuter = Library:Create('Frame', { Name = 'Color'; BackgroundColor3 = Color3.new(1, 1, 1); BorderColor3 = Color3.new(0, 0, 0); Position = UDim2.fromOffset(DisplayFrame.AbsolutePosition.X, DisplayFrame.AbsolutePosition.Y + 18), Size = UDim2.fromOffset(230, Info.Transparency and 271 or 253); Visible = false; ZIndex = 15; Parent = ScreenGui, });
@@ -480,7 +495,7 @@ do
 
 		SatVibMap.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 then while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do local MinX = SatVibMap.AbsolutePosition.X; local MaxX = MinX + SatVibMap.AbsoluteSize.X; local MouseX = math.clamp(Mouse.X, MinX, MaxX); local MinY = SatVibMap.AbsolutePosition.Y; local MaxY = MinY + SatVibMap.AbsoluteSize.Y; local MouseY = math.clamp(Mouse.Y, MinY, MaxY); ColorPicker.Sat = (MouseX - MinX) / (MaxX - MinX); ColorPicker.Vib = 1 - ((MouseY - MinY) / (MaxY - MinY)); ColorPicker:Display(); RenderStepped:Wait(); end; Library:AttemptSave(); end; end);
 		HueSelectorInner.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 then while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do local MinY = HueSelectorInner.AbsolutePosition.Y; local MaxY = MinY + HueSelectorInner.AbsoluteSize.Y; local MouseY = math.clamp(Mouse.Y, MinY, MaxY); ColorPicker.Hue = ((MouseY - MinY) / (MaxY - MinY)); ColorPicker:Display(); RenderStepped:Wait(); end; Library:AttemptSave(); end; end);
-		DisplayFrame.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then if PickerFrameOuter.Visible then ColorPicker:Hide() else ColorPicker:Show() end; elseif Input.UserInputType == Enum.UserInputType.MouseButton2 and not Library:MouseIsOverOpenedFrame() then ColorPicker:Hide() end end);
+		DisplayFrame.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then if PickerFrameOuter.Visible then ColorPicker:Hide() else ColorPicker:Show() end; Input:Handled(); end; end);
 		if TransparencyBoxInner then TransparencyBoxInner.InputBegan:Connect(function(Input) if Input.UserInputType == Enum.UserInputType.MouseButton1 then while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do local MinX = TransparencyBoxInner.AbsolutePosition.X; local MaxX = MinX + TransparencyBoxInner.AbsoluteSize.X; local MouseX = math.clamp(Mouse.X, MinX, MaxX); ColorPicker.Transparency = 1 - ((MouseX - MinX) / (MaxX - MinX)); ColorPicker:Display(); RenderStepped:Wait(); end; Library:AttemptSave(); end; end); end;
 
 		local handle = function() if (not _visible) then return; end; local AbsPos, AbsSize = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize; if (Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y) then ColorPicker:Hide(); end; end
@@ -518,7 +533,20 @@ do
 
 		if KeyPicker.SyncToggleState then Info.Modes = { 'Toggle' }; Info.Mode = 'Toggle'; end
 
-		local PickOuter = Library:Create('Frame', { BackgroundColor3 = Color3.new(0, 0, 0); BorderColor3 = Color3.new(0, 0, 0); Size = UDim2.new(0, 28, 0, 15); ZIndex = 6; Parent = ToggleLabel; });
+		local PickOuter = Library:Create('TextButton', { 
+			BackgroundColor3 = Color3.new(0, 0, 0); 
+			BorderColor3 = Color3.new(0, 0, 0); 
+			Size = UDim2.new(0, 28, 0, 15); 
+			Text = "";
+			ZIndex = 6; 
+			Parent = ToggleLabel; 
+			Active = true;
+		});
+		PickOuter.InputBegan:Connect(function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+				Input:Handled() -- prevent propagation
+			end
+		end);
 		local PickInner = Library:Create('Frame', { BackgroundColor3 = Library.BackgroundColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1, 0, 1, 0); ZIndex = 7; Parent = PickOuter; });
 		Library:AddToRegistry(PickInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor'; });
 		local DisplayLabel = Library:CreateLabel({ Size = UDim2.new(1, 0, 1, 0); TextSize = 13; Text = Info.Default; TextWrapped = true; ZIndex = 8; Parent = PickInner; });
@@ -622,6 +650,7 @@ do
 					Library:SafeCallback(KeyPicker.Changed, Input.KeyCode or Input.UserInputType)
 					Library:AttemptSave(); Event:Disconnect();
 				end);
+				Input:Handled();
 			end;
 		end);
 
@@ -814,7 +843,7 @@ do
 			Size = UDim2.new(0, 13, 0, 13); 
 			ZIndex = 5; 
 			Parent = Container; 
-			Active = false; -- make non‑interactive so clicks pass through to ToggleInner
+			Active = false;
 		});
 		Library:AddToRegistry(ToggleOuter, { BorderColor3 = 'Black'; });
 		
@@ -825,7 +854,7 @@ do
 			Size = UDim2.new(1, 0, 1, 0); 
 			ZIndex = 6; 
 			Parent = ToggleOuter; 
-			Active = true; -- make clickable so checkbox area toggles
+			Active = true;
 		});
 		Library:AddToRegistry(ToggleInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; });
 		
@@ -834,24 +863,28 @@ do
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
 				Toggle:SetValue(not Toggle.Value);
 				Library:AttemptSave();
+				Input:Handled();
 			end;
 		end);
 		
 		local ToggleLabel = Library:CreateLabel({ 
-			Size = UDim2.new(1, -13, 1, 0); -- Fill remaining width after checkbox
-			Position = UDim2.new(0, 13, 0, 0); -- Start after checkbox
+			Size = UDim2.new(1, -13, 1, 0);
+			Position = UDim2.new(0, 13, 0, 0);
 			TextSize = 14; 
 			Text = Info.Text; 
 			TextXAlignment = Enum.TextXAlignment.Left; 
 			ZIndex = 6; 
-			Parent = ToggleInner; -- parent is ToggleInner so clicks on label also go to ToggleInner? No, because label is outside ToggleInner's geometry? Actually, ToggleInner is only 13x13, so label is outside its bounds but still a child. So clicks on label won't trigger ToggleInner's InputBegan. We need to make label clickable separately.
+			Parent = ToggleInner; 
 		});
+		-- Add left padding to separate text from checkbox
+		Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4), Parent = ToggleLabel });
 		
 		-- Make the text label clickable
 		ToggleLabel.InputBegan:Connect(function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
 				Toggle:SetValue(not Toggle.Value);
 				Library:AttemptSave();
+				Input:Handled();
 			end;
 		end);
 		
@@ -868,7 +901,7 @@ do
 			local textWidth = Library:GetTextBounds(Info.Text, Library.Font, 14)
 			local addonWidth = 0
 			for _, child in ipairs(ToggleLabel:GetChildren()) do
-				if child:IsA('Frame') then
+				if child:IsA('Frame') or child:IsA('TextButton') then
 					addonWidth = addonWidth + child.AbsoluteSize.X + 4
 				end
 			end
@@ -877,10 +910,10 @@ do
 			ToggleLabel.Size = UDim2.new(0, math.min(totalWidth, maxWidth), 1, 0)
 		end
 		
-		-- Region for hover effects only (still needed for highlighting)
+		-- Region for hover effects only
 		local ToggleRegion = Library:Create('Frame', { 
 			BackgroundTransparency = 1; 
-			Size = UDim2.new(1, -13, 1, 0); -- Fill rest
+			Size = UDim2.new(1, -13, 1, 0);
 			Position = UDim2.new(0, 13, 0, 0);
 			ZIndex = 8; 
 			Parent = ToggleInner; 
@@ -928,7 +961,6 @@ do
 		
 		-- Handle custom text color
 		if Info.Color then
-			-- Remove from registry if previously set by risky
 			local reg = Library.RegistryMap[ToggleLabel]
 			if reg and reg.Properties.TextColor3 then
 				reg.Properties.TextColor3 = nil
