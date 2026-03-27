@@ -1,6 +1,6 @@
 local httpService = game:GetService('HttpService')
 local ThemeManager = {} do
-	ThemeManager.Folder = 'linoria'
+	ThemeManager.Folder = 'LinoriaLibSettings'
 	-- if not isfolder(ThemeManager.Folder) then makefolder(ThemeManager.Folder) end
 
 	ThemeManager.Library = nil
@@ -15,26 +15,13 @@ local ThemeManager = {} do
 		['Quartz'] 			   = { 8, { FontColor="ffffff", MainColor="232330", AccentColor="426e87", BackgroundColor="1d1b26", OutlineColor="27232f" } },
 	}
 
-	-- ===== NEW: Custom background image support =====
-	function ThemeManager:ApplyBackgroundImage(url)
-		if not self.Library then return end
-		-- Assumes the UI library has a method SetBackgroundImage.
-		-- You can replace this with your own logic, e.g.:
-		--   if self.Library.MainFrame then
-		--       self.Library.MainFrame.BackgroundImage = url ~= "" and url or nil
-		--   end
-		if url and url ~= "" then
-			self.Library:SetBackgroundImage(url)  -- Replace with actual method
-		else
-			self.Library:SetBackgroundImage(nil)  -- Clear background
-		end
-	end
-
 	function ThemeManager:ApplyTheme(theme)
 		local customThemeData = self:GetCustomTheme(theme)
 		local data = customThemeData or self.BuiltInThemes[theme]
 
 		if not data then return end
+
+		-- custom themes are just regular dictionaries instead of an array with { index, dictionary }
 
 		local scheme = data[2]
 		for idx, col in next, customThemeData or scheme do
@@ -45,24 +32,11 @@ local ThemeManager = {} do
 			end
 		end
 
-		-- NEW: Apply custom background image if present in theme data
-		local backgroundUrl = data.backgroundUrl
-		if backgroundUrl and backgroundUrl ~= "" then
-			self:ApplyBackgroundImage(backgroundUrl)
-			if Options.CustomBackground then
-				Options.CustomBackground:SetValue(backgroundUrl)
-			end
-		else
-			self:ApplyBackgroundImage(nil)
-			if Options.CustomBackground then
-				Options.CustomBackground:SetValue("")
-			end
-		end
-
 		self:ThemeUpdate()
 	end
 
 	function ThemeManager:ThemeUpdate()
+		-- This allows us to force apply themes without loading the themes tab :)
 		local options = { "FontColor", "MainColor", "AccentColor", "BackgroundColor", "OutlineColor" }
 		for i, field in next, options do
 			if Options and Options[field] then
@@ -74,7 +48,6 @@ local ThemeManager = {} do
 		self.Library:UpdateColorsUsingRegistry()
 	end
 
-	-- ... (LoadDefault, SaveDefault unchanged) ...
 	function ThemeManager:LoadDefault()		
 		local theme = 'Default'
 		local content = isfile(self.Folder .. '/themes/default.txt') and readfile(self.Folder .. '/themes/default.txt')
@@ -102,25 +75,12 @@ local ThemeManager = {} do
 		writefile(self.Folder .. '/themes/default.txt', theme)
 	end
 
-	-- ===== NEW: Add custom background input to the theme manager UI =====
 	function ThemeManager:CreateThemeManager(groupbox)
 		groupbox:AddLabel('Background color'):AddColorPicker('BackgroundColor', { Default = self.Library.BackgroundColor });
 		groupbox:AddLabel('Main color')	:AddColorPicker('MainColor', { Default = self.Library.MainColor });
 		groupbox:AddLabel('Accent color'):AddColorPicker('AccentColor', { Default = self.Library.AccentColor });
 		groupbox:AddLabel('Outline color'):AddColorPicker('OutlineColor', { Default = self.Library.OutlineColor });
 		groupbox:AddLabel('Font color')	:AddColorPicker('FontColor', { Default = self.Library.FontColor });
-
-		-- NEW: Custom background image input
-		groupbox:AddDivider()
-		groupbox:AddLabel('Custom Background (URL or asset ID)')
-		groupbox:AddInput('CustomBackground', { Text = '', Placeholder = 'https://... or rbxassetid://...', Default = '' })
-
-		-- Optional: Add a button to clear the background
-		groupbox:AddButton('Clear Background', function()
-			Options.CustomBackground:SetValue('')
-			self:ApplyBackgroundImage('')
-			self.Library:Notify('Background cleared')
-		end)
 
 		local ThemesArray = {}
 		for Name, Theme in next, self.BuiltInThemes do
@@ -178,14 +138,8 @@ local ThemeManager = {} do
 		Options.AccentColor:OnChanged(UpdateTheme)
 		Options.OutlineColor:OnChanged(UpdateTheme)
 		Options.FontColor:OnChanged(UpdateTheme)
-
-		-- NEW: Apply custom background when the input changes
-		Options.CustomBackground:OnChanged(function(value)
-			self:ApplyBackgroundImage(value)
-		end)
 	end
 
-	-- ===== Updated custom theme saving to include background URL =====
 	function ThemeManager:GetCustomTheme(file)
 		local path = self.Folder .. '/themes/' .. file
 		if not isfile(path) then
@@ -214,9 +168,6 @@ local ThemeManager = {} do
 			theme[field] = Options[field].Value:ToHex()
 		end
 
-		-- NEW: Save custom background URL
-		theme.backgroundUrl = Options.CustomBackground.Value or ""
-
 		writefile(self.Folder .. '/themes/' .. file .. '.json', httpService:JSONEncode(theme))
 	end
 
@@ -227,6 +178,8 @@ local ThemeManager = {} do
 		for i = 1, #list do
 			local file = list[i]
 			if file:sub(-5) == '.json' then
+				-- i hate this but it has to be done ...
+
 				local pos = file:find('.json', 1, true)
 				local char = file:sub(pos, pos)
 
@@ -250,6 +203,10 @@ local ThemeManager = {} do
 
 	function ThemeManager:BuildFolderTree()
 		local paths = {}
+
+		-- build the entire tree if a path is like some-hub/phantom-forces
+		-- makefolder builds the entire tree on Synapse X but not other exploits
+
 		local parts = self.Folder:split('/')
 		for idx = 1, #parts do
 			paths[#paths + 1] = table.concat(parts, '/', 1, idx)
