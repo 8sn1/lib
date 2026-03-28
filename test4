@@ -1324,7 +1324,7 @@ end;
 
 function Library:Error(Text, Time)
 	local oldAccent = Library.AccentColor
-	Library.AccentColor = Color3.fromRGB(255, 50, 50)
+	Library.AccentColor = Color3.fromRGB(255, 0, 0)
 	Library:Notify(Text, Time)
 	Library.AccentColor = oldAccent
 end
