@@ -1432,7 +1432,7 @@ function library:window(properties)
 	local watermark = library:watermark({default = os.date('void |  - %b %d %Y - %H:%M:%S')})  
 	task.spawn(function()
 		while task.wait(1) do 
-			watermark.change_text(os.date('void - Beta - %b %d %Y - %H:%M:%S'))
+			watermark.change_text(os.date('void - beta - %b %d %Y - %H:%M:%S'))
 		end 
 	end) 
 	local items = style_panel.items
@@ -1613,7 +1613,7 @@ function library:watermark(options)
 		FontFace = library.font,
 		TextColor3 = themes.preset.text,
 		BorderColor3 = rgb(0, 0, 0),
-		Text = "  drain.lol | Beta | Aug 29 2024 | 07:29:00  ",
+		Text = "  drain.lol | beta | Aug 29 2024 | 07:29:00  ",
 		Size = dim2(0, 0, 1, 0),
 		BackgroundTransparency = 1,
 		Position = dim2(0, -1, 0, 1),
